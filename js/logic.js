@@ -107,3 +107,12 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }
 });
+
+window.addEventListener("beforeunload", function (event) {
+  // Membuat pesan peringatan kustom
+  var warningMessage = "Apakah Anda yakin ingin me-reload halaman?";
+
+  // Standar untuk menampilkan pesan peringatan
+  event.returnValue = warningMessage; // For some browsers
+  return warningMessage;
+});
