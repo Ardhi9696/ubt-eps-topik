@@ -5,17 +5,19 @@ function playAudio(audioId) {
   // Cek apakah audio sedang diputar
   if (!audioStatus[audioId]) {
     // Lakukan tindakan atau logika pemutaran audio di sini
-    console.log('Audio ' + audioId + ' belum diputar.');
+    console.log("Audio " + audioId + " belum diputar.");
 
     // Nonaktifkan tombol setelah audio selesai
-    document.querySelector('.playButton[data-audio="' + audioId + '"]').disabled = true;
+    document.querySelector(
+      '.playButton[data-audio="' + audioId + '"]'
+    ).disabled = true;
 
     // Mulai pemutaran audio
     var audioElement = document.getElementById(audioId);
     audioElement.play();
 
     // Tambahkan event listener untuk menangani ketika audio selesai diputar
-    audioElement.addEventListener('ended', function () {
+    audioElement.addEventListener("ended", function () {
       audioEnded(audioId);
     });
 
@@ -26,9 +28,9 @@ function playAudio(audioId) {
     disableOtherPlayButtons(audioId);
 
     // Simpan status pemutaran ke localStorage
-    localStorage.setItem('audioStatus', JSON.stringify(audioStatus));
+    localStorage.setItem("audioStatus", JSON.stringify(audioStatus));
   } else {
-    console.log('Audio ' + audioId + ' sudah diputar.');
+    console.log("Audio " + audioId + " sudah diputar.");
   }
 }
 
@@ -37,13 +39,15 @@ function resetAudio(audioId) {
   delete audioStatus[audioId];
 
   // Aktifkan kembali tombol pemutaran
-  document.querySelector('.playButton[data-audio="' + audioId + '"]').disabled = false;
+  document.querySelector(
+    '.playButton[data-audio="' + audioId + '"]'
+  ).disabled = false;
 
   // Aktifkan kembali tombol pemutaran audio lainnya
   enableAllPlayButtons();
 
   // Simpan status pemutaran yang diperbarui ke localStorage
-  localStorage.setItem('audioStatus', JSON.stringify(audioStatus));
+  localStorage.setItem("audioStatus", JSON.stringify(audioStatus));
 }
 
 function resetAllAudio() {
@@ -54,12 +58,12 @@ function resetAllAudio() {
   enableAllPlayButtons();
 
   // Simpan status pemutaran yang diperbarui ke localStorage
-  localStorage.setItem('audioStatus', JSON.stringify(audioStatus));
+  localStorage.setItem("audioStatus", JSON.stringify(audioStatus));
 }
 
 // Fungsi yang akan dipanggil ketika audio selesai diputar
 function audioEnded(audioId) {
-  console.log('Audio ' + audioId + ' selesai diputar.');
+  console.log("Audio " + audioId + " selesai diputar.");
 
   // Tambahkan logika atau tindakan setelah audio selesai diputar
 
@@ -69,9 +73,9 @@ function audioEnded(audioId) {
 
 // Fungsi untuk menonaktifkan tombol pemutaran audio lainnya
 function disableOtherPlayButtons(currentAudioId) {
-  var playButtons = document.querySelectorAll('.playButton');
+  var playButtons = document.querySelectorAll(".playButton");
   playButtons.forEach(function (button) {
-    var buttonAudioId = button.getAttribute('data-audio');
+    var buttonAudioId = button.getAttribute("data-audio");
     if (buttonAudioId !== currentAudioId) {
       button.disabled = true;
     }
@@ -80,23 +84,25 @@ function disableOtherPlayButtons(currentAudioId) {
 
 // Fungsi untuk mengaktifkan kembali semua tombol pemutaran audio
 function enableAllPlayButtons() {
-  var playButtons = document.querySelectorAll('.playButton');
+  var playButtons = document.querySelectorAll(".playButton");
   playButtons.forEach(function (button) {
     button.disabled = false;
   });
 }
 
 // Cek status pemutaran dari localStorage saat halaman dimuat
-document.addEventListener('DOMContentLoaded', function () {
-  var storedAudioStatus = localStorage.getItem('audioStatus');
+document.addEventListener("DOMContentLoaded", function () {
+  var storedAudioStatus = localStorage.getItem("audioStatus");
   if (storedAudioStatus) {
     audioStatus = JSON.parse(storedAudioStatus);
 
     // Nonaktifkan tombol untuk audio yang sudah diputar
     for (var audioId in audioStatus) {
       if (audioStatus[audioId]) {
-        document.querySelector('.playButton[data-audio="' + audioId + '"]').disabled = true;
-        console.log('Audio ' + audioId + ' sudah diputar.');
+        document.querySelector(
+          '.playButton[data-audio="' + audioId + '"]'
+        ).disabled = true;
+        console.log("Audio " + audioId + " sudah diputar.");
       }
     }
   }
