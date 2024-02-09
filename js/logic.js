@@ -1,118 +1,98 @@
-// Inisialisasi objek untuk melacak status pemutaran masing-masing audio
-var audioStatus = {};
+document.addEventListener("DOMContentLoaded", function () {
+  // Menambahkan event listener untuk event beforeunload
+  window.addEventListener("beforeunload", function (event) {
+    // Pesan peringatan yang akan ditampilkan pada dialog konfirmasi
+    var pesanPeringatan =
+      "Apakah Anda yakin ingin me-reload halaman? Data yang belum disimpan mungkin akan hilang.";
 
-function playAudio(audioId) {
-  // Cek apakah audio sedang diputar
-  if (!audioStatus[audioId]) {
-    // Lakukan tindakan atau logika pemutaran audio di sini
-    console.log("Audio " + audioId + " belum diputar.");
+    // Standar untuk pesan peringatan di sebagian besar browser modern
+    event.returnValue = pesanPeringatan;
 
-    // Nonaktifkan tombol setelah audio selesai
-    document.querySelector(
-      '.playButton[data-audio="' + audioId + '"]'
-    ).disabled = true;
+    // Untuk browser yang mendukung standar terbaru
+    return pesanPeringatan;
+  });
+});
 
-    // Mulai pemutaran audio
-    var audioElement = document.getElementById(audioId);
-    audioElement.play();
+document.addEventListener("DOMContentLoaded", function () {
+  var isAudioPlayed = {};
+  var audioSedangDiputar = null;
 
-    // Tambahkan event listener untuk menangani ketika audio selesai diputar
-    audioElement.addEventListener("ended", function () {
-      audioEnded(audioId);
-    });
+  // Fungsi untuk memutar audio
+  function putarAudio(audioId) {
+    var audio = document.getElementById(audioId);
+    var statusPemutaran = localStorage.getItem("statusPemutaran_" + audioId);
 
-    // Setel status pemutaran untuk audio tertentu
-    audioStatus[audioId] = true;
+    if (
+      !isAudioPlayed[audioId] &&
+      !audioSedangDiputar &&
+      (!statusPemutaran || statusPemutaran === "belum-diputar")
+    ) {
+      console.log("Audio belum diputar");
 
-    // Nonaktifkan tombol pemutaran audio lainnya
-    disableOtherPlayButtons(audioId);
+      audio.play();
+      isAudioPlayed[audioId] = true;
+      audioSedangDiputar = audio;
 
-    // Simpan status pemutaran ke localStorage
-    localStorage.setItem("audioStatus", JSON.stringify(audioStatus));
-  } else {
-    console.log("Audio " + audioId + " sudah diputar.");
+      // Menonaktifkan tombol setelah diputar
+      document.querySelector('[data-audio="' + audioId + '"]').disabled = true;
+
+      // Simpan status pemutaran ke local storage
+      localStorage.setItem("statusPemutaran_" + audioId, "sudah-diputar");
+
+      // Mendeteksi saat audio sedang diputar
+      audio.addEventListener("playing", function () {
+        console.log("Audio sedang diputar");
+      });
+
+      // Mendeteksi saat audio selesai diputar
+      audio.addEventListener("ended", function () {
+        console.log("Audio selesai diputar");
+        audioSedangDiputar = null;
+      });
+    } else if (isAudioPlayed[audioId]) {
+      console.log("Audio sudah diputar sebelumnya");
+      document.querySelector('[data-audio="' + audioId + '"]').disabled = true;
+    } else if (audioSedangDiputar) {
+      console.log("Audio sedang diputar oleh audio lain");
+    } else {
+      console.log("Audio sudah diputar sebelumnya (dari local storage)");
+      document.querySelector('[data-audio="' + audioId + '"]').disabled = true;
+    }
   }
-}
 
-function resetAudio(audioId) {
-  // Hapus status pemutaran untuk audio tertentu dari localStorage
-  delete audioStatus[audioId];
+  // Cek status pemutaran saat memuat halaman
+  var buttons = document.querySelectorAll(".playButton");
+  buttons.forEach(function (button) {
+    var audioId = button.getAttribute("data-audio");
+    var statusPemutaran = localStorage.getItem("statusPemutaran_" + audioId);
 
-  // Aktifkan kembali tombol pemutaran
-  document.querySelector(
-    '.playButton[data-audio="' + audioId + '"]'
-  ).disabled = false;
-
-  // Aktifkan kembali tombol pemutaran audio lainnya
-  enableAllPlayButtons();
-
-  // Simpan status pemutaran yang diperbarui ke localStorage
-  localStorage.setItem("audioStatus", JSON.stringify(audioStatus));
-}
-
-function resetAllAudio() {
-  // Hapus status pemutaran untuk semua audio dari localStorage
-  audioStatus = {};
-
-  // Aktifkan kembali tombol pemutaran untuk semua audio
-  enableAllPlayButtons();
-
-  // Simpan status pemutaran yang diperbarui ke localStorage
-  localStorage.setItem("audioStatus", JSON.stringify(audioStatus));
-}
-
-// Fungsi yang akan dipanggil ketika audio selesai diputar
-function audioEnded(audioId) {
-  console.log("Audio " + audioId + " selesai diputar.");
-
-  // Tambahkan logika atau tindakan setelah audio selesai diputar
-
-  // Aktifkan kembali tombol pemutaran audio lainnya
-  enableAllPlayButtons();
-}
-
-// Fungsi untuk menonaktifkan tombol pemutaran audio lainnya
-function disableOtherPlayButtons(currentAudioId) {
-  var playButtons = document.querySelectorAll(".playButton");
-  playButtons.forEach(function (button) {
-    var buttonAudioId = button.getAttribute("data-audio");
-    if (buttonAudioId !== currentAudioId) {
+    if (statusPemutaran && statusPemutaran === "sudah-diputar") {
       button.disabled = true;
     }
   });
-}
 
-// Fungsi untuk mengaktifkan kembali semua tombol pemutaran audio
-function enableAllPlayButtons() {
-  var playButtons = document.querySelectorAll(".playButton");
-  playButtons.forEach(function (button) {
-    button.disabled = false;
+  // Mendeteksi klik pada tombol
+  buttons.forEach(function (button) {
+    button.addEventListener("click", function () {
+      var audioId = button.getAttribute("data-audio");
+      putarAudio(audioId);
+    });
   });
-}
 
-// Cek status pemutaran dari localStorage saat halaman dimuat
-document.addEventListener("DOMContentLoaded", function () {
-  var storedAudioStatus = localStorage.getItem("audioStatus");
-  if (storedAudioStatus) {
-    audioStatus = JSON.parse(storedAudioStatus);
+  // Mendeteksi klik pada tombol reset
+  document.getElementById("resetButton").addEventListener("click", function () {
+    // Reset status pemutaran di local storage
+    localStorage.clear();
 
-    // Nonaktifkan tombol untuk audio yang sudah diputar
-    for (var audioId in audioStatus) {
-      if (audioStatus[audioId]) {
-        document.querySelector(
-          '.playButton[data-audio="' + audioId + '"]'
-        ).disabled = true;
-        console.log("Audio " + audioId + " sudah diputar.");
-      }
-    }
-  }
-});
+    // Mengaktifkan kembali semua tombol
+    buttons.forEach(function (button) {
+      button.disabled = false;
+    });
 
-window.addEventListener("beforeunload", function (event) {
-  // Membuat pesan peringatan kustom
-  var warningMessage = "Apakah Anda yakin ingin me-reload halaman?";
+    // Reset status pemutaran di variabel
+    isAudioPlayed = {};
+    audioSedangDiputar = null;
 
-  // Standar untuk menampilkan pesan peringatan
-  event.returnValue = warningMessage; // For some browsers
-  return warningMessage;
+    console.log("Status pemutaran di-reset");
+  });
 });
